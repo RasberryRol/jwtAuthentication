@@ -12,9 +12,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 //First class created followed by SecurityConfiguration
-@Controller //tell spring boot that this is a controller class
+@RestController//tell spring boot that this is a controller class
 public class ContentController {
     @Autowired
     private AuthenticationManager authenticationManager;//to authenticate by username and password without any logic separately

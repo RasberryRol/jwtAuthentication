@@ -1,5 +1,6 @@
 package com.springSecurity.jwtAuthentication.webtoken;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -39,4 +40,22 @@ public class JwtService {
         return Keys.hmacShaKeyFor(decodeKey); //convert decoded key into secret key
     }
 
+    //extract username from validated token
+    public String extractUsername(String jwt) {
+        Claims claims = getClaims(jwt);
+        return claims.getSubject();//get the username
+    }
+
+    private Claims getClaims(String jwt) {
+        return Jwts.parser()//user .builder() to generate token, but parse to extract from token
+                            .verifyWith(generateKey())
+                            .build()
+                            .parseSignedClaims(jwt)
+                            .getPayload();
+    }
+
+    public boolean isTokenValid(String jwt) {
+        Claims claims = getClaims(jwt);
+        return claims.getExpiration().after(Date.from(Instant.now()));//expiration date in the future
+    }
 }

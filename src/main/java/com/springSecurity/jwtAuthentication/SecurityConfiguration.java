@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -16,12 +17,15 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration //tell spring that this is a configuration class
 @EnableWebSecurity //to enable spring security
 public class SecurityConfiguration {
     @Autowired
     private MyUserDetailService userDetailService;
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     //this Bean provides a default security filterChain for the login page.
     //we use httpSecurity to customize it and indicate which end-points have
@@ -34,13 +38,15 @@ public class SecurityConfiguration {
                 //csrf will block the request unless it is disabled as shown below
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(registry->{
-            registry.requestMatchers("/authenticate","/home", "/register/**").permitAll();
+            registry.requestMatchers("/home", "/register/**", "/authenticate").permitAll();
             registry.requestMatchers("/admin/**").hasRole("ADMIN");
             registry.requestMatchers("/user/**").hasRole("USER");
-//            registry.anyRequest().authenticated(); //any request not mentioned above needs to
+            registry.anyRequest().authenticated(); //any request not mentioned above needs to
                                                     //be authenticated
-        })      //to make the login page accessible to anyone
+        })
+                //to make the login page accessible to anyone
                 .formLogin(AbstractAuthenticationFilterConfigurer::permitAll) //this is a reference to (formLogin -> formLogin.permitAll())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)//this is to load the jwtAuth... filter before the UsernamePass... filter
                 .build();  //NEXT, WE CREATE THE IN-MEMORY USERS BELOW
     }
 
